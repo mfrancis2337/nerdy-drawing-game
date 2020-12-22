@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="keywords" content="drawing game, drawing, game, multiplayer, online, party">
+		<meta name="description" content="A multiplayer online drawing game">
+		<meta name="author" content="M. Francis">
+		<title>Nerdy Drawing Game</title>
+		<link rel="stylesheet" type="text/css" href="css/stylesheet.css">
+		<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+		<script src="scripts/main.js"></script>
+		
+		<!-- Lure off people with JavaScript turned off by immediately redirecting them to a noscript page -->
+		<noscript>
+			<meta http-equiv="refresh" content="0 noscript.html">
+		</noscript>
+
+		<!-- I have to make sure IE9 gets to do stuff as well, even though nobody using this should have IE9 -->
+		<!--[if lt IE 9]>
+			<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+	<body>
+		<div id="container">
+			<!-- Tools at top -->
+			<header>
+				<p><span style="font-weight: 600;">Nerdy Drawing Game</span> &#x2003;&#x2003;&#x2003;&#x2003; Players: <span id="players">0</span>/10 &#x2003;&#x2003;&#x2003;&#x2003; Room Code: <span id="roomcode">????</span></p>
+			</header>
+			<!-- This is where stuff will be drawn -->
+			<canvas id="board" width="1920" height="1080" onmouseleave="onMouseUp(event);" onmousedown="onMouseDown(event);" onmouseup="onMouseUp(event);" onmousemove="onMouseMove(event, false);" ontouchstart="onMouseDown(event);" ontouchend="onMouseUp(event);" ontouchmove="onMouseMove(event, true);">
+				<h1>Uh oh!</h1>
+				<p>It seems your browser does not support the canvas element! Please use a different browser.</p>
+			</canvas>
+			<!-- Sidebar with player listings and scores as well as host controls -->
+			<aside>
+				<div id="hostcontrols"></div>
+				<div id="playerbox">
+					<div class="playercolor">
+						<p>
+							<span id="p1n" style="font-weight: bold;"></span><br>
+							<span id="p1s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p2n" style="font-weight: bold;"></span><br>
+							<span id="p2s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p3n" style="font-weight: bold;"></span><br>
+							<span id="p3s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p4n" style="font-weight: bold;"></span><br>
+							<span id="p4s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p5n" style="font-weight: bold;"></span><br>
+							<span id="p5s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p6n" style="font-weight: bold;"></span><br>
+							<span id="p6s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p7n" style="font-weight: bold;"></span><br>
+							<span id="p7s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p8n" style="font-weight: bold;"></span><br>
+							<span id="p8s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p9n" style="font-weight: bold;"></span><br>
+							<span id="p9s" style="font-style: italic;"></span>
+						</p>
+					</div>
+					<div class="playercolor">
+						<p>
+							<span id="p10n" style="font-weight: bold;"></span><br>
+							<span id="p10s" style="font-style: italic;"></span>
+						</p>
+					</div>
+				</div>
+				<div id="closeleft" onclick="toggleLeftSidebar();"></div>
+			</aside>
+			<!-- Sidebar with chatbox and guessing thing -->
+			<main>
+				<div id="closeright" onclick="toggleRightSidebar();"></div>
+				<div id="chatbox">
+					<p>Hello! This is a very unfinished page, but it does have some functionality! Play around with it!</p>
+				</div>
+				<form onsubmit="submitText(event);">
+					<input type="text" id="textbox" maxlength=30>
+					<input type="submit" value="&rarr;">
+				</form>
+			</main>
+			<!-- Drawing tools and the like -->
+			<footer>
+				<!-- Colors -->
+				<div class="colorcontainer">
+					<div class="tool color active" style="background-color: #000000;" onclick="switchColor(0);" title="black"></div>
+					<div class="tool color" style="background-color: #7f7f7f;" onclick="switchColor(1);" title="gray"></div>
+					<div class="tool color" style="background-color: #c3c3c3;" onclick="switchColor(2);" title="light gray"></div>
+					<div class="tool color" style="background-color: #ffffff;" onclick="switchColor(3);" title="white"></div>
+					<div class="tool color" style="background-color: #880015;" onclick="switchColor(4);" title="cranberry red"></div>
+					<div class="tool color" style="background-color: #ed1c24;" onclick="switchColor(5);" title="red"></div>
+					<div class="tool color" style="background-color: #ff7f27;" onclick="switchColor(6);" title="orange"></div>
+					<div class="tool color" style="background-color: #ffc90e;" onclick="switchColor(7);" title="orange yellow"></div>
+					<div class="tool color" style="background-color: #fff200;" onclick="switchColor(8);" title="yellow"></div>
+					<div class="tool color" style="background-color: #b5e61d;" onclick="switchColor(9);" title="green yellow"></div>
+					<div class="tool color" style="background-color: #22b14c;" onclick="switchColor(10);" title="green"></div>
+					<div class="tool color" style="background-color: #99d9ea;" onclick="switchColor(11);" title="sky blue"></div>
+					<div class="tool color" style="background-color: #00a2e8;" onclick="switchColor(12);" title="light blue"></div>
+					<div class="tool color" style="background-color: #3f48cc;" onclick="switchColor(13);" title="blue"></div>
+					<div class="tool color" style="background-color: #7092be;" onclick="switchColor(14);" title="periwinkle"></div>
+					<div class="tool color" style="background-color: #c8bfe7;" onclick="switchColor(15);" title="light purple"></div>
+					<div class="tool color" style="background-color: #a349a4;" onclick="switchColor(16);" title="purple"></div>
+					<div class="tool color" style="background-color: #ffaec9;" onclick="switchColor(17);" title="pink"></div>
+					<div class="tool color" style="background-color: #efe4b0;" onclick="switchColor(18);" title="beige"></div>
+					<div class="tool color" style="background-color: #b97a57;" onclick="switchColor(19);" title="brown"></div>
+				</div>
+				<!-- Tools -->
+				<div>
+					<div class="tool noncolor" style="background-image: url(img/pencil.svg);" onclick="switchTool(1);" title="pencil"></div>
+					<div class="tool noncolor" style="background-image: url(img/bucket.svg);" onclick="switchTool(2);" title="fill"></div>
+					<div class="tool noncolor" style="background-image: url(img/eraser.svg);" onclick="switchTool(3);" title="eraser"></div>
+					<div class="tool noncolor" style="background-image: url(img/refresh.svg);" onclick="resetCanvas();" title="reset"></div>
+					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 2px;" onclick="switchSize(2, 0);" title="x-small"></div>
+					<div class="tool noncolor size active" style="background-image: url(img/circle.svg); background-size: 4px;" onclick="switchSize(4, 1);" title="small"></div>
+					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 10px;" onclick="switchSize(10, 2);" title="medium"></div>
+					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 20px;" onclick="switchSize(20, 3);" title="large"></div>
+					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 30px;" onclick="switchSize(30, 4);" title="x-large"></div>
+				</div>
+			</footer>
+		</div>
+		<div class="portrait">
+			<!-- Show a message to use landscape mode -->
+			<!-- This will only appear if the screen is taller than it is wide -->
+			<div>
+				<h1>Portrait mode detected!</h1>
+				<p>Please use landscape mode for the best viewing experience.</p>
+			</div>
+		</div>
+	</body>
+</html>

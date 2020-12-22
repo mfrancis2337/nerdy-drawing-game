@@ -1,0 +1,341 @@
+/* Created by M. Francis - 2020 */
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+
+/* Colors and general styling */
+:root {
+	/* To anyone curious, these colors were created using some fancy math. */
+	/* I used a for loop to generate these colors. Let's use variable i and set it to 0. */
+	/* While i is less than 10, add this number to an array: i * 0.618033988749895 * 360 */
+	/* Then increment that number. */
+	--player-0: black;
+	--player-1: #bf4040;
+	--player-2: #4064bf;
+	--player-3: #8abf40;
+	--player-4: #bf40ae;
+	--player-5: #40bfaa;
+	--player-6: #bf8640;
+	--player-7: #6040bf;
+	--player-8: #44bf40;
+	--player-9: #bf406a;
+	--player-10: #4091bf;
+	--player-1-dark: #732626;
+	--player-2-dark: #263c73;
+	--player-3-dark: #537326;
+	--player-4-dark: #732669;
+	--player-5-dark: #267366;
+	--player-6-dark: #735026;
+	--player-7-dark: #392673;
+	--player-8-dark: #297326;
+	--player-9-dark: #732640;
+	--player-10-dark: #265773;
+	--generic-bg: #555555;
+
+	--width-offset: calc(100px * (16/9));
+}
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: var(--generic-bg);
+	transition: 1s background-color;
+	background-image: url("../img/grid-noise.png"); /* Texture from transparenttextures.com */
+	font-family: "Source Sans Pro", sans-serif;
+	font-weight: 400;
+	font-size: small;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+	color: white;
+}
+#container {
+	position: absolute;
+	display: block;
+	width: 100vw;
+	height: 56.25vw;
+	max-height: 100vh;
+}
+
+/* Header thing */
+header {
+	background-color: var(--generic-bg);
+	transition: 1s background-color;
+	position: absolute;
+	font-size: large;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 50px;
+	z-index: 6;
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+header p {
+	display: inline-block;
+}
+
+/* Canvas */
+canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 56.25vw;
+	max-height: 100vh;
+	background-color: white;
+	background-image: url("../img/worn-dots.png");
+	border: 0;
+	z-index: 0;
+}
+
+/* Blur overlay when resetting */
+#bluroverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	filter: blur(10px);
+	width: 100vw;
+	height: 100vh;
+	z-index: 2;
+	display: none;
+}
+
+/* General styling for sidebars */
+aside, main {
+	padding: 50px 0;
+	box-sizing: border-box;
+	display: inline-block;
+	background-color: #eee;
+	color: #121212;
+	position: absolute;
+	height: 56.25vw;
+	max-height: 100vh;
+}
+aside *, main * {
+	pointer-events: all;
+}
+
+/* Sidebar with player listings and scores as well as host controls */
+aside {
+	transition: 0.5s margin-left ease-out;
+	left: 0;
+	width: 200px;
+	z-index: 3;
+}
+aside #closeleft {
+	display: inline-block;
+	height: 56.25vw;
+	max-height: 100vh;
+	padding-left: 6px;
+	background-color: #ccc;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	cursor: pointer;
+	position: absolute;
+	top: 0;
+	right: -7px;
+}
+aside #playerbox {
+	height: calc(56.25vw - 100px);
+	max-height: calc(100vh - 100px);
+	padding: 8px;
+	box-sizing: border-box;
+	overflow-y: auto;
+}
+aside .playercolor:not(.active) {
+	display: none;
+}
+aside .playercolor p {
+	display: inline-block;
+}
+aside .playercolor.active:before {
+	display: inline-block;
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+	content: "";
+}
+
+/* Player colors in sidebar */
+aside .playercolor:nth-child(1):before {
+	background-color: var(--player-1);
+}
+aside .playercolor:nth-child(2):before {
+	background-color: var(--player-2);
+}
+aside .playercolor:nth-child(3):before {
+	background-color: var(--player-3);
+}
+aside .playercolor:nth-child(4):before {
+	background-color: var(--player-4);
+}
+aside .playercolor:nth-child(5):before {
+	background-color: var(--player-5);
+}
+aside .playercolor:nth-child(6):before {
+	background-color: var(--player-6);
+}
+aside .playercolor:nth-child(7):before {
+	background-color: var(--player-7);
+}
+aside .playercolor:nth-child(8):before {
+	background-color: var(--player-8);
+}
+aside .playercolor:nth-child(9):before {
+	background-color: var(--player-9);
+}
+aside .playercolor:nth-child(10):before {
+	background-color: var(--player-10);
+}
+
+/* Sidebar with chatbox and guessing thing */
+main {
+	transition: 0.5s margin-right ease-out;
+	right: 0;
+	width: 200px;
+	z-index: 4;
+}
+main #closeright {
+	display: inline-block;
+	height: 56.25vw;
+	max-height: 100vh;
+	padding-left: 6px;
+	background-color: #ccc;
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	cursor: pointer;
+	position: absolute;
+	top: 0;
+	left: -7px;
+}
+main #chatbox {
+	height: calc(56.25vw - 100px);
+	max-height: calc(100vh - 100px);
+	max-width: 200px;
+	padding: 8px;
+	border-bottom: 1.25rem solid transparent;
+	box-sizing: border-box;
+	font-size: 1rem;
+	position: absolute;
+	top: 50px;
+	left: 0;
+	overflow: hidden;
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	hyphens: auto;
+}
+main #chatbox span {
+	font-weight: 600;
+}
+main form {
+	position: absolute;
+	left: 0;
+	bottom: 50px;
+	border: 1px solid black;
+	box-sizing: border-box;
+	display: flex;
+}
+main form.error {
+	border: 1px solid red;
+}
+input[type=text] {
+	padding: 2px;
+	border: 0;
+	border-radius: 0;
+	background-color: white;
+	font-family: inherit;
+	font-weight: 400;
+	width: calc(200px - 1.25rem);
+	height: 1.25rem;
+	box-sizing: border-box;
+	outline: none;
+	cursor: text;
+}
+input[type=submit]{
+	border: 0;
+	border-radius: 0;
+	background-color: white;
+	font-family: inherit;
+	font-weight: 400;
+	width: 1.25rem;
+	height: 1.25rem;
+	box-sizing: border-box;
+	outline: none;
+	cursor: pointer;
+}
+
+/* Drawing tools and the like */
+footer {
+	background-color: var(--generic-bg);
+	transition: 1s background-color;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100vw;
+	height: 50px;
+	z-index: 5;
+	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+footer .colorcontainer {
+	width: 200px;
+	display: flex;
+	flex-wrap: wrap;
+}
+footer .tool {
+	width: 40px;
+	height: 40px;
+	border: 1px solid white;
+	box-sizing: border-box;
+	margin: 0px 5px;
+	cursor: pointer;
+	display: inline-block;
+	background-color: #888;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+footer .colorcontainer .tool {
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	margin-bottom: -1px;
+	margin-left: -1px;
+}
+footer .tool.active {
+	border: 3px solid white;
+}
+footer .noncolor {
+	margin-bottom: -4px;
+}
+footer *:not(.colorcontainer) .tool.active {
+	background-color: #aaa;
+}
+
+/* Portrait-mode warning */
+.portrait {
+	display: none;
+}
+@media screen and (orientation:portrait) {
+	.portrait {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		backdrop-filter: blur(10px) brightness(60%);
+		background-color: #7f7f7f7f;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 10;
+	}
+}

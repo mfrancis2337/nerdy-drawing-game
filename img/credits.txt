@@ -1,0 +1,16 @@
+IMAGE CREDITS
+
+Background images: https://www.transparenttextures.com
+Toolbar icons: https://github.com/tabler/tabler-icons/tree/master/icons (see LICENSE for the required license)
+
+..\img\
+  - black-twill.png (UNUSED; transparent textures)
+  - bucket.svg (tabler icons)
+  - circle.svg (tabler icons)
+  - credits.txt
+  - eraser.svg (tabler icons)
+  - grid-noise.png (transparent textures)
+  - LICENSE (tabler icons)
+  - pencil.svg (tabler icons)
+  - refresh.svg (tabler icons)
+  - worn-dots.png (transparent textures)

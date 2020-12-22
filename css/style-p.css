@@ -1,0 +1,55 @@
+:root {
+	/* To anyone curious, these colors were created using some fancy math. */
+	/* I used a for loop to generate these colors. Let's use variable i and set it to 0. */
+	/* While i is less than 10, add this number to an array: i * 0.618033988749895 * 360 */
+	/* Then increment that number. The big number is just some irrational number. */
+	--player-1: hsl(0, 50%, 50%);
+	--player-2: hsl(222.4922359499622, 50%, 50%);
+	--player-3: hsl(444.9844718999244, 50%, 50%);
+	--player-4: hsl(667.4767078498867, 50%, 50%);
+	--player-5: hsl(889.9689437998488, 50%, 50%);
+	--player-6: hsl(1112.461179749811, 50%, 50%);
+	--player-7: hsl(1334.9534156997734, 50%, 50%);
+	--player-8: hsl(1557.4456516497355, 50%, 50%);
+	--player-9: hsl(1779.9378875996977, 50%, 50%);
+	--player-10: hsl(2002.4301235496598, 50%, 50%);
+	--generic-bg: #555;
+}
+* {
+	margin: 0;
+}
+body {
+	background-color: var(--generic-bg);
+	transition: 1s background-color;
+	background-image: url("../img/grid-noise.png"); /* Texture from transparenttextures.com */
+}
+#main {
+	width: 45vh;
+	height: 80vh;
+	max-width: 80vw;
+	max-height: 142.224vw;
+	margin: auto;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: #ccc;
+}
+#main * {
+	display: inline-block;
+}
+
+
+canvas {
+	float: left;
+	width: 45vh;
+	height: 45vh;
+	max-width: 80vw;
+	background-color: white;
+	border: 0;
+}
+#right {
+	float: right;
+	
+}
