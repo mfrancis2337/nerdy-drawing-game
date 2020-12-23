@@ -2,27 +2,28 @@
 
 const port = 8080;
 
-var app = require('http').createServer(handler);
-var io = require('socket.io').listen(app);
+var server = require('http').createServer(function(req, res){
+	switch(req.url){
+		//Main page
+		case "/":
+			res.writeHead(200, {'Content-Type': 'text/html'});
+			break;
+		default:
+			req.addListener('end', function(){
+				//Return the correct file
+				fileServer.serve(req, res);
+			});
+			break;
+	}
+});
+var io = require('socket.io').listen(server);
 var static = require('node-static'); // for serving files
 
 //Create a new server
 var fileServer = new static.Server('./');
 
 //The port to listen to
-app.listen(port);
-
-/**
- * Serves files from the server when opened in a browser
- * @param {IncomingMessage} request The request from the client
- * @param {ServerResponse} response The response to the client
- */
-function handler(request, response) {
-	request.addListener('end', function () {
-		//Return the correct file
-		fileServer.serve(request, response);
-	});
-}
+server.listen(port);
 
 //Prevents debug messages (comment it out to have debug messages)
 io.set('log level', 1);

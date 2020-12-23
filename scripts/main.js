@@ -303,7 +303,7 @@ function switchTool(tool){
 		//Switch tool
 		mode = tool;
 		//Add border
-		if(document.querySelector(".active.noncolor"))
+		if(document.querySelector(".active.noncolor") && document.querySelector(".active.noncolor") != document.querySelector(".active.size"))
 			document.querySelector(".active.noncolor").classList.remove("active");
 		document.querySelectorAll(".tool.noncolor")[tool - 1].classList.add("active");
 		//Style cursor on canvas element
