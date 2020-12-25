@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "An online multiplayer drawing game",
   "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://www.github.com/mfrancis2337/nerdy-drawing-game"
