@@ -11,5 +11,10 @@
     "url": "https://www.github.com/mfrancis2337/nerdy-drawing-game"
   },
   "author": "M. Francis",
-  "license": "ISC"
+  "license": "unlicense",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^3.0.4",
+    "socket.io-client": "^3.0.4"
+  }
 }

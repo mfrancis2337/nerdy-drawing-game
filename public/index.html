@@ -8,10 +8,11 @@
 		<meta name="author" content="M. Francis">
 		<title>Nerdy Drawing Game</title>
 		<link rel="stylesheet" type="text/css" href="css/stylesheet.css">
-		<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+		<script src="socket.io/socket.io.js"></script>
+		<script src="words.js"></script>
 		<script src="scripts/main.js"></script>
 		
-		<!-- Lure off people with JavaScript turned off by immediately redirecting them to a noscript page -->
+		<!-- Lure off people with JavaScript disabled by immediately redirecting them to a noscript page -->
 		<noscript>
 			<meta http-equiv="refresh" content="0 noscript.html">
 		</noscript>
@@ -25,7 +26,7 @@
 		<div id="container">
 			<!-- Tools at top -->
 			<header>
-				<p><span style="font-weight: 600;">Nerdy Drawing Game</span> &#x2003;&#x2003;&#x2003;&#x2003; Players: <span id="players">0</span>/10 &#x2003;&#x2003;&#x2003;&#x2003; Room Code: <span id="roomcode">????</span></p>
+				<p><span style="font-weight: 600;">Nerdy Drawing Game</span> &#x2003;&#x2003;&#x2003;&#x2003; Players: <span id="players">0</span>/10 &#x2003;&#x2003;&#x2003;&#x2003; Room Code: <span id="roomcode" onclick="toggleRoomCode();">----</span></p>
 			</header>
 			<!-- This is where stuff will be drawn -->
 			<canvas id="board" width="1920" height="1080" onmouseleave="onMouseUp(event);" onmousedown="onMouseDown(event);" onmouseup="onMouseUp(event);" onmousemove="onMouseMove(event, false);" ontouchstart="onMouseDown(event);" ontouchend="onMouseUp(event);" ontouchmove="onMouseMove(event, true);">
@@ -34,7 +35,14 @@
 			</canvas>
 			<!-- Sidebar with player listings and scores as well as host controls -->
 			<aside>
-				<div id="hostcontrols"></div>
+				<div id="joincontrols" style="display: none;">
+					<input type="button" value="Create New Room" onclick="createRoom();">
+				</div>
+				<div id="hostcontrols" style="display: none;">
+					<p>You are the host.</p>
+					<!-- <input type="button" value="Start Game"><br> -->
+					<!-- <input type="button" value="Skip Player"> -->
+				</div>
 				<div id="playerbox">
 					<div class="playercolor">
 						<p>
@@ -103,10 +111,10 @@
 			<main>
 				<div id="closeright" onclick="toggleRightSidebar();"></div>
 				<div id="chatbox">
-					<p>Hello! This is a very unfinished page, but it does have some functionality! Play around with it!</p>
+					<p>Hello! Please enter a nickname!</p>
 				</div>
 				<form onsubmit="submitText(event);">
-					<input type="text" id="textbox" maxlength=30>
+					<input type="text" id="textbox" maxlength=64>
 					<input type="submit" value="&rarr;">
 				</form>
 			</main>
