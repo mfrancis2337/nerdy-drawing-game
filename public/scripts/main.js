@@ -68,13 +68,20 @@ var oldMouseY = -1;
  * Decides what to do when the onmousedown event is triggered.
  * @param {Event} e The onmousedown event
  */
-function onMouseDown(e){
+function onMouseDown(e, touchscreen){
 	e.preventDefault();
 	//Get the element information
 	let canvasRect = document.querySelector("canvas").getBoundingClientRect();
 	//Use the element information to determine where the mouse is on the canvas
-	oldMouseX = Math.round(((e.clientX - canvasRect.left) / canvasRect.width) * canvasWidth);
-	oldMouseY = Math.round(((e.clientY - canvasRect.top) / canvasRect.height) * canvasHeight);
+	if(touchscreen){
+		let event = (typeof e.originalEvent === 'undefined') ? e : e.originalEvent;
+		let touch = event.touches[0] || event.changedTouches[0];
+		oldMouseX = Math.round(((touch.pageX - canvasRect.left) / canvasRect.width) * canvasWidth);
+		oldMouseY = Math.round(((touch.pageY - canvasRect.top) / canvasRect.height) * canvasHeight);
+	} else {
+		oldMouseX = Math.round(((e.clientX - canvasRect.left) / canvasRect.width) * canvasWidth);
+		oldMouseY = Math.round(((e.clientY - canvasRect.top) / canvasRect.height) * canvasHeight);
+	}
 	//Set mouseIsDown to true to ensure that we can draw
 	mouseIsDown = true;
 	//Do certain things if necessary
@@ -95,7 +102,6 @@ function onMouseUp(e){
 	e.preventDefault();
 	//Set mouseIsDown to false to ensure that things will not be further drawn
 	mouseIsDown = false;
-	//
 }
 
 /**
@@ -157,7 +163,7 @@ function draw(x, y){
 	canvas.lineTo(x, y);
 	canvas.stroke();
 	//Send information
-	socket.emit("draw", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize, color: selectedColor});
+	if(socket) socket.emit("draw", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize, color: selectedColor});
 	//Set old mouse variables
 	oldMouseX = x;
 	oldMouseY = y;
@@ -302,7 +308,7 @@ function fill(xC, yC){
 	//Put new image on screen
 	canvas.putImageData(pixels, 0, 0);
 	//Send information
-	socket.emit("fill", {roomid: roomCode, x: xC, y: yC, color: selectedColor});
+	if(socket) socket.emit("fill", {roomid: roomCode, x: xC, y: yC, color: selectedColor});
 }
 
 /**
@@ -433,7 +439,7 @@ function erase(x, y){
 	canvas.lineTo(x, y);
 	canvas.stroke();
 	//Send information
-	socket.emit("erase", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize});
+	if(socket) socket.emit("erase", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize});
 	//Set old mouse variables
 	oldMouseX = x;
 	oldMouseY = y;
@@ -467,8 +473,7 @@ function eraseMultiplayer(xOld, yOld, xNew, yNew, size){
  */
 function switchColor(color){
 	if(mode != 0){
-		if(selectedColor != colors.length)
-			document.getElementsByClassName("tool")[selectedColor].classList.remove("active");
+		document.getElementsByClassName("tool")[selectedColor].classList.remove("active");
 		//Switch color
 		selectedColor = color;
 		document.getElementsByClassName("tool")[color].classList.add("active");
@@ -513,7 +518,7 @@ function switchTool(tool){
  * @param {number} number The element number in the footer to change to active.
  */
 function switchSize(size, number){
-	if(turn == playerID){
+	if(turn == playerID || turn == 0){
 		//Switch size
 		penSize = size;
 		//Add border
@@ -530,7 +535,7 @@ function resetCanvas(){
 	if(turn == 0 || turn == playerID){
 		let canvas = document.querySelector("canvas").getContext("2d");
 		canvas.clearRect(0, 0, canvasWidth, canvasHeight);
-		socket.emit("reset", {roomid: roomCode});
+		if(socket) socket.emit("reset", {roomid: roomCode});
 	}
 }
 

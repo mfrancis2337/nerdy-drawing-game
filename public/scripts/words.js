@@ -1013,4 +1013,10 @@ const words = [
 	"tail",
 	"wings",
 	"paw",
+	//Technology
+	"robot",
+	"internet",
+	"server",
+	"laptop",
+	"circuit board",
 ];

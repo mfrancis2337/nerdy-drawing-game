@@ -9,7 +9,7 @@
 		<title>Nerdy Drawing Game</title>
 		<link rel="stylesheet" type="text/css" href="css/stylesheet.css">
 		<script src="socket.io/socket.io.js"></script>
-		<script src="words.js"></script>
+		<script src="scripts/words.js"></script>
 		<script src="scripts/main.js"></script>
 		
 		<!-- Lure off people with JavaScript disabled by immediately redirecting them to a noscript page -->
@@ -29,7 +29,7 @@
 				<p><span style="font-weight: 600;">Nerdy Drawing Game</span> &#x2003;&#x2003;&#x2003;&#x2003; Players: <span id="players">0</span>/10 &#x2003;&#x2003;&#x2003;&#x2003; Room Code: <span id="roomcode" onclick="toggleRoomCode();">----</span></p>
 			</header>
 			<!-- This is where stuff will be drawn -->
-			<canvas id="board" width="1920" height="1080" onmouseleave="onMouseUp(event);" onmousedown="onMouseDown(event);" onmouseup="onMouseUp(event);" onmousemove="onMouseMove(event, false);" ontouchstart="onMouseDown(event);" ontouchend="onMouseUp(event);" ontouchmove="onMouseMove(event, true);">
+			<canvas id="board" width="1920" height="1080" onmousedown="onMouseDown(event, false);" onmouseup="onMouseUp(event);" onmouseleave="onMouseUp(event);" onmousemove="onMouseMove(event, false);" ontouchstart="onMouseDown(event, true);" ontouchend="onMouseUp(event);" ontouchmove="onMouseMove(event, true);">
 				<h1>Uh oh!</h1>
 				<p>It seems your browser does not support the canvas element! Please use a different browser.</p>
 			</canvas>
@@ -114,7 +114,7 @@
 					<p>Hello! Please enter a nickname!</p>
 				</div>
 				<form onsubmit="submitText(event);">
-					<input type="text" id="textbox" maxlength=64>
+					<input type="text" id="textbox" maxlength=64 onfocus="event.stopPropagation();">
 					<input type="submit" value="&rarr;">
 				</form>
 			</main>

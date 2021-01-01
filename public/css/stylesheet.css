@@ -39,6 +39,11 @@
 	font-family: "Source Sans Pro", sans-serif;
 	font-weight: 400;
 }
+@media screen and (max-width: 700px) {
+	* {
+		font-size: small;
+	}
+}
 
 body {
 	background-color: var(--generic-bg);
@@ -76,6 +81,11 @@ header {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+@media screen and (max-width: 700px) {
+	header {
+		height: 30px;
+	}
 }
 header p {
 	display: inline-block;
@@ -135,6 +145,11 @@ aside {
 	width: 200px;
 	z-index: 3;
 }
+@media screen and (max-width: 700px) {
+	aside {
+		width: 120px;
+	}
+}
 aside #joincontrols, aside #hostcontrols {
 	text-align: center;
 	padding: 8px;
@@ -163,11 +178,19 @@ aside #closeleft {
 	right: -7px;
 }
 aside #playerbox {
+	max-width: 200px;
 	height: calc(56.25vw - 100px);
 	max-height: calc(100vh - 100px);
 	padding: 8px;
 	box-sizing: border-box;
 	overflow-y: auto;
+}
+@media screen and (max-width: 700px) {
+	aside #playerbox {
+		max-width: 120px;
+		height: calc(56.25vw - 60px);
+		max-height: calc(100vh - 60px);
+	}
 }
 aside .playercolor:not(.active) {
 	display: none;
@@ -181,6 +204,12 @@ aside .playercolor.active:before {
 	height: 25px;
 	border-radius: 50%;
 	content: "";
+}
+@media screen and (max-width: 700px) {
+	aside .playercolor.active:before {
+		width: 15px;
+		height: 15px;
+	}
 }
 
 /* Player colors in sidebar */
@@ -222,6 +251,11 @@ main {
 	width: 200px;
 	z-index: 4;
 }
+@media screen and (max-width: 700px) {
+	main {
+		width: 120px;
+	}
+}
 main #closeright {
 	display: inline-block;
 	height: 56.25vw;
@@ -251,6 +285,13 @@ main #chatbox {
 	word-wrap: break-word;
 	hyphens: auto;
 }
+@media screen and (max-width: 700px) {
+	main #chatbox {
+		max-height: calc(100vh - 60px);
+		max-width: 120px;
+		top: 30px;
+	}
+}
 main #chatbox span {
 	font-weight: 600;
 }
@@ -261,6 +302,11 @@ main form {
 	border: 1px solid black;
 	box-sizing: border-box;
 	display: flex;
+}
+@media screen and (max-width: 700px) {
+	main form {
+		bottom: 30px;
+	}
 }
 main form.error {
 	border: 1px solid red;
@@ -276,6 +322,11 @@ input[type=text] {
 	box-sizing: border-box;
 	outline: none;
 	cursor: text;
+}
+@media screen and (max-width: 700px) {
+	input[type=text] {
+		width: calc(120px - 1.25rem);
+	}
 }
 input[type=submit]{
 	border: 0;
@@ -304,10 +355,20 @@ footer {
 	justify-content: center;
 	align-items: center;
 }
+@media screen and (max-width: 700px) {
+	footer {
+		height: 30px;
+	}
+}
 footer .colorcontainer {
 	width: 200px;
 	display: flex;
 	flex-wrap: wrap;
+}
+@media screen and (max-width: 700px) {
+	footer .colorcontainer {
+		width: 120px;
+	}
 }
 footer .tool {
 	width: 40px;
@@ -321,12 +382,24 @@ footer .tool {
 	background-repeat: no-repeat;
 	background-position: center center;
 }
+@media screen and (max-width: 700px) {
+	footer .tool {
+		width: 24px;
+		height: 24px;
+	}
+}
 footer .colorcontainer .tool {
 	width: 20px;
 	height: 20px;
 	margin: 0;
 	margin-bottom: -1px;
 	margin-left: -1px;
+}
+@media screen and (max-width: 700px) {
+	footer .colorcontainer .tool {
+		width: 12px;
+		height: 12px;
+	}
 }
 footer .tool.active {
 	border: 3px solid white;
