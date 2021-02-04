@@ -23,25 +23,50 @@
 		<![endif]-->
 	</head>
 	<body>
+		<!-- The main container for everything -->
 		<div id="container">
 			<!-- Tools at top -->
 			<header>
-				<p><span style="font-weight: 600;">Nerdy Drawing Game</span> &#x2003;&#x2003;&#x2003;&#x2003; Players: <span id="players">0</span>/10 &#x2003;&#x2003;&#x2003;&#x2003; Room Code: <span id="roomcode" onclick="toggleRoomCode();">----</span></p>
+				<p>Players: <span id="players">0</span>/10</p>
+				<p>Room Code: <span id="roomcode" onclick="toggleRoomCode();" title="Click to hide/show">----</span></p>
+				<p id="timer">--</p>
+				<p id="word" style="letter-spacing: 2px;">???</p>
 			</header>
-			<!-- This is where stuff will be drawn -->
+			<!-- Canvas where things will be drawn -->
 			<canvas id="board" width="1920" height="1080" onmousedown="onMouseDown(event, false);" onmouseup="onMouseUp(event);" onmouseleave="onMouseUp(event);" onmousemove="onMouseMove(event, false);" ontouchstart="onMouseDown(event, true);" ontouchend="onMouseUp(event);" ontouchmove="onMouseMove(event, true);">
 				<h1>Uh oh!</h1>
 				<p>It seems your browser does not support the canvas element! Please use a different browser.</p>
 			</canvas>
+			<!-- Cover for choosing words/showing words are being chosen -->
+			<div id="bluroverlay" style="display: none;">
+				<div id="nonchoosecontainer" style="display: block;">
+					<span id="choosename">User</span> is choosing a word...
+				</div>
+				<div id="choosecontainer" style="display: none;">
+					<input id="val1" type="button" value="placeholder" onclick="chooseWord(0);"><br>
+					<input id="val2" type="button" value="placeholder" onclick="chooseWord(0);"><br>
+					<input id="val3" type="button" value="placeholder" onclick="chooseWord(0);">
+				</div>
+				<div id="wincontainer" style="display: none;">
+					<span id="winname">User</span> wins with <span id="winscore">0</span> points!
+				</div>
+			</div>
 			<!-- Sidebar with player listings and scores as well as host controls -->
 			<aside>
-				<div id="joincontrols" style="display: none;">
-					<input type="button" value="Create New Room" onclick="createRoom();">
-				</div>
-				<div id="hostcontrols" style="display: none;">
-					<p>You are the host.</p>
-					<!-- <input type="button" value="Start Game"><br> -->
-					<!-- <input type="button" value="Skip Player"> -->
+				<div id="controlpanel">
+					<div id="joincontrols" style="display: none;">
+						<input type="button" value="Create New Room" onclick="createRoom();">
+					</div>
+					<div id="hostcontrols" style="display: none;">
+						<p style="font-weight: 600;">You are the host.</p>
+						<input type="button" value="Start Game" onclick="toggleGame(this, true);"><br>
+						<input type="button" value="Skip Player"><br>
+						<input type="button" value="Kick Player">
+					</div>
+					<div id="playercontrols" style="display: none;">
+						<!-- <input type="button" value="Download Image" onclick="downloadCanvas();"> -->
+						<input type="button" value="Leave Game" onclick="leaveRoom();">
+					</div>
 				</div>
 				<div id="playerbox">
 					<div class="playercolor">
@@ -148,10 +173,11 @@
 					<div class="tool noncolor" style="background-image: url(img/pencil.svg);" onclick="switchTool(1);" title="pencil"></div>
 					<div class="tool noncolor" style="background-image: url(img/bucket.svg);" onclick="switchTool(2);" title="fill"></div>
 					<div class="tool noncolor" style="background-image: url(img/eraser.svg);" onclick="switchTool(3);" title="eraser"></div>
-					<div class="tool noncolor" style="background-image: url(img/refresh.svg);" onclick="resetCanvas();" title="reset"></div>
+					<div class="tool noncolor" style="background-image: url(img/refresh.svg);" onclick="if(turn == 0 || turn == playerID) resetCanvas(true);" title="reset"></div>
+					<!-- Sizes -->
 					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 2px;" onclick="switchSize(2, 0);" title="x-small"></div>
-					<div class="tool noncolor size active" style="background-image: url(img/circle.svg); background-size: 4px;" onclick="switchSize(4, 1);" title="small"></div>
-					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 10px;" onclick="switchSize(10, 2);" title="medium"></div>
+					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 4px;" onclick="switchSize(4, 1);" title="small"></div>
+					<div class="tool noncolor size active" style="background-image: url(img/circle.svg); background-size: 10px;" onclick="switchSize(10, 2);" title="medium"></div>
 					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 20px;" onclick="switchSize(20, 3);" title="large"></div>
 					<div class="tool noncolor size" style="background-image: url(img/circle.svg); background-size: 30px;" onclick="switchSize(30, 4);" title="x-large"></div>
 				</div>

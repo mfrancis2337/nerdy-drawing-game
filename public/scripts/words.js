@@ -9,6 +9,10 @@
  * By reading this array in the source file words.js, you are condoning yourself
  * to not only spoilers, but my occasional stupid comments, remarks, and jokes.
  * 
+ * Fun fact: the longest entry in this is "Cloudy with a Chance of Meatballs".  
+ * Also fun fact: if you find the most common letter for every space in this,
+ * you end up with "boreenoreeeeeeoennsteeenmeatballs".
+ * 
  * @author M. Francis
  */
 
@@ -307,8 +311,6 @@ const words = [
 	"The LEGO Movie",
 	"Emmet Brickowski",
 	"Lord Business",
-	"Vitruvius",
-	"Unikitty",
 	"Cloudy with a Chance of Meatballs",
 	"Flint Lockwood",
 	"Sam Sparks",
@@ -316,15 +318,10 @@ const words = [
 	"Jack Skellington",
 	"Hotel Transylvania",
 	"The Avengers",
-	//Film/television companies
+	//Film/television companies (only a few)
 	"Disney",
 	"Pixar",
-	"Warner Bros",
-	"Blue Sky Studios",
-	"Universal Studios",
-	"Illumination Entertainment", //The only good movie to come out of this stuido was Despicable Me 1, change my mind
 	"Nickelodeon",
-	"Paramount Pictures",
 	"Dreamworks",
 	/********************************/
 	/*  VIDEO GAMES AND CHARACTERS  */
@@ -562,7 +559,6 @@ const words = [
 	"Eiffel Tower",
 	"Colosseum",
 	"Leaning Tower of Pisa",
-	"Acropolis",
 	"Parthenon",
 	"Big Ben",
 	"Louvre",
@@ -792,6 +788,8 @@ const words = [
 	"Rudolph the red-nosed reindeer",
 	"eggnog",
 	"mistletoe",
+	"present",
+	"stocking",
 	//Other holidays and made-up things for kids and capitalism
 	"Easter Bunny",
 	"Tooth Fairy",
@@ -1020,3 +1018,34 @@ const words = [
 	"laptop",
 	"circuit board",
 ];
+
+/**
+ * A temporary testing function
+ */
+function findAverageLetters(){
+	return;//Remove or comment out this line for testing
+	let letters = [];
+	//Go through each word in array
+	for(let i = 0; i < words.length; i++){
+		//Go through each character in a word
+		for(let j = 0; j < words[i].length; j++){
+			if(words[i].charAt(j).match(/[\W]/)) continue;
+			if(!letters[j]) letters[j] = new Map();
+			let k = letters[j].get(words[i].charAt(j)) || 0;
+			letters[j].set(words[i].charAt(j).toLowerCase(), k + 1);
+		}
+	}
+	let most = [];
+	let mostN = [];
+	for(let l = 0; l < letters.length; l++){
+		most[l] = "";
+		mostN[l] = 0;
+		for(let m of letters[l].keys()){
+			if(letters[l].get(m) > mostN[l]){
+				most[l] = m;
+				mostN[l] = letters[l].get(m);
+			}
+		}
+	}
+	return most.join("");
+}

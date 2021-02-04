@@ -1,9 +1,5 @@
 //Created by M. Francis - 2020
 
-//Put warnings out on console
-// console.log("%cHOLD ON A MOMENT!", "color: #ff7f7f; font-size: xx-large;");
-// console.log("%cBefore you go mucking about here, please remember to NEVER PASTE THINGS INTO THE CONSOLE if you don't know what you're doing! This includes if someone else told you to. You could be leaking personal information about yourself to attackers for all you know!", "color: white;");
-
 //Set up variables
 const colors = [
 	"#000000",//Black
@@ -37,17 +33,22 @@ var socket = io.connect();
 var hasJoinedRoom = false;
 var hasSetName = false;
 var roomCodeHidden = false;
+var gameStarted = false;
 
 var mode = 0;
 var penSize = 10;
 var selectedColor = 0;
 
+var round = 0;
 var turn = -1; //Set this to -1 to prevent any drawing
+var timer;
+var countdown = 0;
+
 var roomCode = "----";
 var playerID = 0; //0 = not joined; 1-10 = joined
-var globalPlayerID = -1; //This gets assigned a random value when joining a game to ensure player differentiation
+var globalPlayerID = ""; //This gets assigned a random value when joining a game to ensure player differentiation
 var playerName = "You";
-var word = "";
+var playerScore = 0;
 
 var playerNames = [];
 var playerGlobalIDs = [];
@@ -163,7 +164,7 @@ function draw(x, y){
 	canvas.lineTo(x, y);
 	canvas.stroke();
 	//Send information
-	if(socket) socket.emit("draw", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize, color: selectedColor});
+	if(socket && hasJoinedRoom) socket.emit("draw", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize, color: selectedColor});
 	//Set old mouse variables
 	oldMouseX = x;
 	oldMouseY = y;
@@ -308,7 +309,7 @@ function fill(xC, yC){
 	//Put new image on screen
 	canvas.putImageData(pixels, 0, 0);
 	//Send information
-	if(socket) socket.emit("fill", {roomid: roomCode, x: xC, y: yC, color: selectedColor});
+	if(socket && hasJoinedRoom) socket.emit("fill", {roomid: roomCode, x: xC, y: yC, color: selectedColor});
 }
 
 /**
@@ -439,7 +440,7 @@ function erase(x, y){
 	canvas.lineTo(x, y);
 	canvas.stroke();
 	//Send information
-	if(socket) socket.emit("erase", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize});
+	if(socket && hasJoinedRoom) socket.emit("erase", {roomid: roomCode, oldx: oldMouseX, oldy: oldMouseY, newx: x, newy: y, size: penSize});
 	//Set old mouse variables
 	oldMouseX = x;
 	oldMouseY = y;
@@ -473,10 +474,11 @@ function eraseMultiplayer(xOld, yOld, xNew, yNew, size){
  */
 function switchColor(color){
 	if(mode != 0){
-		document.getElementsByClassName("tool")[selectedColor].classList.remove("active");
+		if(!selectedColor) selectedColor = 0;
+		document.getElementsByClassName("color")[selectedColor].classList.remove("active");
 		//Switch color
 		selectedColor = color;
-		document.getElementsByClassName("tool")[color].classList.add("active");
+		document.getElementsByClassName("color")[color].classList.add("active");
 	}
 }
 
@@ -530,13 +532,12 @@ function switchSize(size, number){
 
 /**
  * Erases the canvas.
+ * @param {boolean} sendMessage Whether or not to send a message. Optional; defaults to true.
  */
-function resetCanvas(){
-	if(turn == 0 || turn == playerID){
-		let canvas = document.querySelector("canvas").getContext("2d");
-		canvas.clearRect(0, 0, canvasWidth, canvasHeight);
-		if(socket) socket.emit("reset", {roomid: roomCode});
-	}
+function resetCanvas(sendMessage = true){
+	let canvas = document.querySelector("canvas").getContext("2d");
+	canvas.clearRect(0, 0, canvasWidth, canvasHeight);
+	if(socket && hasJoinedRoom && sendMessage) socket.emit("reset", {roomid: roomCode});
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -555,8 +556,8 @@ function submitText(e){
 	let entry = document.getElementById("textbox").value || "";
 	//Make sure value is not empty
 	if(entry == "") return;
-	//Test entry through regex
-	let pattern = /^[\w\-\s\(\).,:;'"]*$/;
+	//Test entry through regex (any of a number of characters but must contain at least one alphanumeric character)
+	let pattern = /^(?=.*[A-Za-z0-9])[\w\-\s\(\).,:;'"]*$/;
 	let regexTester = new RegExp(pattern);
 	if(!regexTester.test(entry)){
 		//Item did not make it through, send a warning
@@ -607,7 +608,7 @@ function setName(entry){
 		document.getElementById("chatbox").appendChild(message);
 		document.getElementById("joincontrols").style.display = "block";
 		//Scroll chat
-		document.getElementById("chatbox").scrollIntoView(false);
+		document.getElementById("chatbox").scrollIntoView({block: "end"});
 	} else {
 		//Name is too short or long
 		let warningText = document.createElement("p");
@@ -619,7 +620,7 @@ function setName(entry){
 		if(!document.querySelector("form").classList.contains("error"))
 			document.querySelector("form").classList.add("error");
 		//Scroll chat
-		document.getElementById("chatbox").scrollIntoView(false);
+		document.getElementById("chatbox").scrollIntoView({block: "end"});
 	}
 }
 
@@ -641,9 +642,9 @@ function setRoomID(entry){
 		if(!document.querySelector("form").classList.contains("error"))
 			document.querySelector("form").classList.add("error");
 		//Scroll chat
-		warningText.scrollIntoView(false);
+		warningText.scrollIntoView({block: "end"});
 		//Stop any further running of scripts in the function
-		return; 
+		return;
 	}
 	//Check room
 	checkRoom(entry);
@@ -667,7 +668,7 @@ function chat(entry){
 	//Append chat item
 	chatbox.appendChild(chatitem);
 	//Scroll chat
-	chatitem.scrollIntoView(false);
+	chatitem.scrollIntoView({block: "end"});
 	//Send information
 	socket.emit("message", {roomid: roomCode, player: playerID, name: playerName, message: entry});
 }
@@ -675,12 +676,24 @@ function chat(entry){
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-//Socket.io functionality
+//Socket.io functionality (general)
 
 /**
  * Sets the user ID
  */
 socket.on("setuserid", function(id){
+	//Check to see if we already have a player id and joined a room
+	if(globalPlayerID != "" && roomCode != "----"){
+		//We have a player id already and roomCode has been set, we disconnected somehow.
+		//Make sure the server knows we are the same person
+		socket.emit("update", {
+			name: playerName,
+			roomid: roomCode,
+			playerid: playerID,
+			score: playerScore
+		});
+	}
+	//Set new player id
 	globalPlayerID = id;
 	console.log("User ID: " + id);
 	return;
@@ -690,18 +703,19 @@ socket.on("setuserid", function(id){
  * Joins a room
  */
 socket.on("roomjoin", function(data){
+	resetCanvas();
 	//Retrieve information
 	playerNames = data.playernamelist;
 	playerGlobalIDs = data.playeridlist;
 	playerScores = data.playerscorelist;
 	turn = data.turn;
-	word = data.word;
 	roomCode = data.roomid;
 	
 	//Set player ID and check to see if we are host
 	playerID = playerGlobalIDs.indexOf(globalPlayerID) + 1;
 	document.getElementById("joincontrols").style.display = "none";
 	if(playerID == 1) document.getElementById("hostcontrols").style.display = "block";
+	document.getElementById("playercontrols").style.display = "block";
 
 	//Update page information
 	hasJoinedRoom = true;//In case the room was created
@@ -721,6 +735,7 @@ socket.on("roomjoin", function(data){
  */
 socket.on("userjoin", function(data){
 	//Retrieve data
+	console.log(data.name + " joined the game");
 	playerNames.push(data.name);
 	playerGlobalIDs.push(data.userid);
 	playerScores.push(0);
@@ -739,9 +754,10 @@ socket.on("userjoin", function(data){
  * Removes an existing user
  */
 socket.on("userleave", function(data){
+	if(typeof data != "string") return;
 	//Remove data
-	console.log(data);
 	let removePlayer = playerGlobalIDs.indexOf(data);
+	console.log(playerNames[removePlayer] + " left the game");
 	playerNames.splice(removePlayer, 1);
 	playerGlobalIDs.splice(removePlayer, 1);
 	playerScores.splice(removePlayer, 1);
@@ -760,34 +776,54 @@ socket.on("userleave", function(data){
 		document.getElementById("p" + j + "n").innerText = playerNames[j - 1];
 		document.getElementById("p" + j + "s").innerText = playerScores[j - 1];
 	}
+
+	//See if a game needs to be stopped
+	if(playerGlobalIDs.length < 2){
+		stopGame();
+	}
 });
 
 /**
- * Events that correlate to a change on the page
- * (i.e. drawing, filling, erasing, resetting, or new chat message)
+ * Leaves a room if the player is in one.
  */
-socket.on("draw", function(data){drawMultiplayer(data.oldx, data.oldy, data.newx, data.newy, data.size, data.color)});
-socket.on("fill", function(data){fillMultiplayer(data.x, data.y, data.color)});
-socket.on("erase", function(data){eraseMultiplayer(data.oldx, data.oldy, data.newx, data.newy, data.size)});
-socket.on("reset", resetCanvas());
-socket.on("message", function(data){
-	//Get chat box
-	let chatbox = document.getElementById("chatbox");
-	//Create chat items
-	let chatitem = document.createElement("p");
-	let chatname = document.createElement("span");
-	//Set stuff up for chat items
-	chatname.style.color = "var(--player-" + data.player + ")";
-	chatname.innerText = data.name + ": ";
-	chatitem.appendChild(chatname);
-	chatitem.innerHTML = chatitem.innerHTML + data.message;
-	//Append chat item
-	chatbox.appendChild(chatitem);
-	//Scroll chat
-	chatitem.scrollIntoView(false);
-});
-
-// socket.on("newturn", function(data){});
+function leaveRoom(){
+	//Make sure we are in a room
+	let pattern = /^[A-Z]{4}$/;
+	let regexTester = new RegExp(pattern);
+	if(!regexTester.test(roomCode)){
+		//Invalid code, send error message
+		console.warn("You cannot leave a room if you aren't in one!");
+		//Stop any further running of scripts in the function
+		return;
+	}
+	//Send leave request
+	socket.emit("leave", roomCode);
+	//Reset variables
+	playerNames = [];
+	playerGlobalIDs = [];
+	playerScores = [];
+	roomCode = "----";
+	hasJoinedRoom = false;
+	playerID = 0;
+	resetCanvas();
+	//Clear chat and player lists
+	document.getElementById("chatbox").innerHTML = "";
+	if(!roomCodeHidden) document.getElementById("roomcode").innerText = roomCode;
+	document.getElementById("players").innerText = 0;
+	for(let i = 0; i < 10; i++){
+		document.getElementsByClassName("playercolor")[i].classList.remove("active");
+		document.getElementById("p" + (i + 1) + "n").innerText = "";
+		document.getElementById("p" + (i + 1) + "s").innerText = "";
+	}
+	document.getElementById("hostcontrols").style.display = "none";
+	document.getElementById("playercontrols").style.display = "none";
+	//Put room code prompt in chat
+	let message = document.createElement("p");
+	message.innerText = "Please enter a room id (or create a room on the left)";
+	document.getElementById("chatbox").appendChild(message);
+	document.getElementById("joincontrols").style.display = "block";
+	return;
+}
 
 var wait;
 /**
@@ -810,7 +846,7 @@ function checkRoom(code){
 		reason.innerText = "Could not join room: server didn't respond";
 		chatbox.appendChild(reason);
 		//Scroll chat
-		reason.scrollIntoView(false);
+		reason.scrollIntoView({block: "end"});
 		return;
 	}, 10000);
 	
@@ -835,7 +871,7 @@ socket.on("checkroomresponse", function(data){
 		hasJoinedRoom = true;
 		socket.emit("join", {name: playerName, roomid: data.roomid});
 		//Scroll chat
-		success.scrollIntoView(false);
+		success.scrollIntoView({block: "end"});
 		return;
 	} else {
 		//Put error message
@@ -843,7 +879,9 @@ socket.on("checkroomresponse", function(data){
 		reason.innerText = "Could not join room: " + data.reason;
 		chatbox.appendChild(reason);
 		//Scroll chat
-		reason.scrollIntoView(false);
+		reason.scrollIntoView({block: "end"});
+		//Leave room if we are in one
+		if(roomCode != "----") leaveRoom();
 		return;
 	}
 });
@@ -856,6 +894,255 @@ function createRoom(){
 	if(!hasJoinedRoom) socket.emit("create", {name: playerName});
 	else console.warn("You cannot create a room while you are in one!");
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Socket.io functionality (host)
+
+/**
+ * Decides whether to start or stop the game
+ * @param {Element} elem The button element being pressed
+ */
+function toggleGame(elem, broadcast){
+	if(!elem) return;
+	if(gameStarted){
+		if(broadcast) stopGame();
+		elem.value = "Start Game";
+	} else {
+		if(broadcast) startGame();
+		elem.value = "Stop Game";
+	}
+}
+
+/**
+ * Sends a message to start the game
+ */
+function startGame(){
+	//Make sure we are the host, there are enough players, and that a game isn't already started
+	if(playerID == 1 && playerGlobalIDs.length > 1 && !gameStarted){
+		gameStarted = !gameStarted;
+		socket.emit("startgame", {
+			roomid: roomCode,
+			startplayer: playerGlobalIDs.length
+		});
+	}
+	return;
+}
+
+/**
+ * Sends a message to stop the game
+ */
+function stopGame(){
+	//Make sure we are the host and a game is in session
+	if(playerID == 1 && gameStarted){
+		gameStarted = !gameStarted;
+		socket.emit("stopgame", {
+			roomid: roomCode
+		});
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Socket.io functionality (game)
+
+/**
+ * Prepares for the next turn in the game
+ */
+socket.on("newturn", function(data){
+	console.log("New turn!");
+	console.log(data);
+	turn = data;
+	//Do some things
+	clearInterval(timer);
+	countdown = 30;
+	timer = setInterval(() => {
+		countdown--;
+		document.getElementById("timer").innerText = countdown;
+		if(countdown == 0){
+			document.getElementById("bluroverlay").style.display = "none";
+			console.log("timer is over :(");
+			clearInterval(timer);
+			if(playerID == 1){
+				console.log("I am the host");
+				if(turn == 1) socket.emit("finishgame", roomCode);
+				else socket.emit("nextturn", {
+					roomid: roomCode,
+					nextplayer: turn - 1
+				});
+			}
+		}
+	}, 1000);
+	document.getElementById("word").innerText = "???";
+	document.getElementById("bluroverlay").style.display = "flex";
+	document.getElementById("nonchoosecontainer").style.display = "none";
+	document.getElementById("choosecontainer").style.display = "none";
+	document.getElementById("wincontainer").style.display = "none";
+	//Determine if it's the user's turn
+	if(playerID == data){
+		//It is the user's turn
+		document.getElementById("choosecontainer").style.display = "block";
+		let button1 = document.getElementById("val1");
+		let button2 = document.getElementById("val2");
+		let button3 = document.getElementById("val3");
+		let randNums = [
+			Math.floor(Math.random() * words.length),
+			Math.floor(Math.random() * words.length),
+			Math.floor(Math.random() * words.length)
+		];
+		button1.value = words[randNums[0]];
+		button1.setAttribute("onclick", "chooseWord(" + randNums[0] + ");");
+		button2.value = words[randNums[1]];
+		button2.setAttribute("onclick", "chooseWord(" + randNums[1] + ");");
+		button3.value = words[randNums[2]];
+		button3.setAttribute("onclick", "chooseWord(" + randNums[2] + ");");
+	} else {
+		//It is not the user's turn
+		document.getElementById("nonchoosecontainer").style.display = "block";
+		document.getElementById("choosename").innerText = (data > 0) ? playerNames[data] : "User";
+		mode = 0;
+	}
+});
+/**
+ * Sends a message about which word
+ * @param {number} index The index of the word in the words array
+ */
+function chooseWord(index){
+	console.log(index + ": " + words[index]);
+	console.log(turn + "," + playerID);
+	if(turn == playerID){
+		socket.emit("chosenword", {
+			roomid: roomCode,
+			word: words[index],
+			wordNumber: index
+		});
+	}
+}
+/**
+ * Prepares for the guessing portion of a turn
+ */
+socket.on("chosenword", function(data){
+	console.log("Word id:" + data);
+	//Hide blur overlay
+	resetCanvas(false);
+	document.getElementById("bluroverlay").style.display = "none";
+	//Set timer
+	clearInterval(timer);
+	countdown = 45;
+	timer = setInterval(() => {
+		countdown--;
+		document.getElementById("timer").innerText = countdown;
+		if(countdown == 0){
+			clearInterval(timer);
+			if(playerID == 1){
+				if(turn == 1) socket.emit("finishgame", roomCode);
+				else socket.emit("nextturn", {
+					roomid: roomCode,
+					nextplayer: turn - 1
+				});
+			}
+		}
+	}, 1000);
+	if(turn == playerID){
+		//Put word up on top
+		document.getElementById("word").innerText = words[data];
+	} else {
+		//Set word with underscores
+		let underscores = "";
+		for(let i = 0; i < words[data].length; i++){
+			if(words[data].charAt(i).match(/[A-Za-z]/)) underscores += "_";
+			else underscores += words[data].charAt(i);
+		}
+		document.getElementById("word").innerText = underscores;
+	}
+	return;
+});
+
+/**
+ * On receiving a message to stop the game
+ */
+socket.on("stopgame", function(data){
+	//Make sure that it is the host that is stopping the game
+	if(playerGlobalIDs.indexOf(data) != 0){
+		return;
+	}
+	//Reset stuff
+	resetCanvas(false);
+	clearInterval(timer);
+	countdown = 0;
+	turn = 0;
+	document.getElementById("timer").innerText = "--";
+	document.getElementById("word").innerText = "???";
+	console.log("Game was stopped");
+	return;
+});
+
+/**
+ * On receiving that the game is finished
+ */
+socket.on("finishgame", function(){
+	//Reset stuff
+	turn = 0;
+	document.getElementById("timer").innerText = "--";
+	document.getElementById("word").innerText = "???";
+	//Show the end screen
+	document.getElementById("bluroverlay").style.display = "flex";
+	document.getElementById("nonchoosecontainer").style.display = "none";
+	document.getElementById("choosecontainer").style.display = "none";
+	document.getElementById("wincontainer").style.display = "block";
+	setTimeout(() => {
+		//Hide endscreen after 10 seconds.
+		//This won't happen if another round has happened.
+		if(document.getElementById("bluroverlay").style.display == "flex" && turn == 0){
+			document.getElementById("bluroverlay").style.display = "none";
+			document.getElementById("wincontainer").style.display = "none";
+		}
+	}, 10000);
+});
+
+/**
+ * Events that correlate to a change on the page
+ * (i.e. drawing, filling, erasing, resetting, or new chat message)
+ */
+socket.on("draw", function(data){drawMultiplayer(data.oldx, data.oldy, data.newx, data.newy, data.size, data.color)});
+socket.on("fill", function(data){fillMultiplayer(data.x, data.y, data.color)});
+socket.on("erase", function(data){eraseMultiplayer(data.oldx, data.oldy, data.newx, data.newy, data.size)});
+socket.on("reset", function(){resetCanvas(false)});//put in a function to stop undefined error when starting a game
+socket.on("message", function(data){
+	//Get chat box
+	let chatbox = document.getElementById("chatbox");
+	//Create chat items
+	let chatitem = document.createElement("p");
+	let chatname = document.createElement("span");
+	//Set stuff up for chat items
+	chatname.style.color = "var(--player-" + data.player + ")";
+	chatname.innerText = data.name + ": ";
+	chatitem.appendChild(chatname);
+	chatitem.innerHTML = chatitem.innerHTML + data.message;
+	//Append chat item
+	chatbox.appendChild(chatitem);
+	//Scroll chat
+	chatitem.scrollIntoView({block: "end"});
+});
+
+/**
+ * Update player data of a player who reconnected
+ */
+socket.on("update", function(data){
+	if(playerNames[data.playerid] == data.name){
+		//The room did not receive a disconnect, just update player id
+		console.log(data.name + " reconnected");
+		playerGlobalIDs[data.playerid] == data.userid;
+	} else {
+		//The player was disconnected completely, re-add their items
+		console.log(data.name + " rejoined");
+		playerNames.splice(data.playerid - 1, 0, data.name);
+		playerGlobalIDs.splice(data.playerid - 1, 0, data.userid);
+		playerScores.splice(data.playerid - 1, 0, data.score);
+	}
+});
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -898,4 +1185,33 @@ function toggleRoomCode(){
 	roomCodeHidden = !roomCodeHidden;
 	if(roomCodeHidden) roomCodeElem.innerText = "????";
 	else roomCodeElem.innerText = roomCode;
+}
+
+/**
+ * 
+ */
+function downloadCanvas(){
+	let d = new Date();
+	let dataURL = document.querySelector("canvas").toDataURL("image/png");
+	let saveName = playerNames[turn - 1] + "-" + d.getMilliseconds() + ".png";
+
+	let elem = document.createElement("a");
+	elem.setAttribute("href", dataURL);
+	elem.setAttribute("download", saveName);
+	document.body.appendChild(elem);
+	elem.click();
+	document.body.removeChild(elem);
+	return;
+}
+
+/**
+ * A function created for testing random word generation.
+ * This is not used anywhere.
+ */
+function generateRandomWords(i = 3){
+	let selectedWords = [];
+	for(let j = 0; j < i; j++){
+		selectedWords.push(words[Math.floor(Math.random() * words.length)]);
+	}
+	return selectedWords;
 }
